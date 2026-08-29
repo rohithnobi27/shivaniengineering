@@ -2,6 +2,7 @@ import { Routes, Route, NavLink } from 'react-router-dom';
 import InvoiceForm from './components/InvoiceForm';
 import InvoiceList from './components/InvoiceList';
 import InvoiceView from './components/InvoiceView';
+import InspectionReports from './components/InspectionReports';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/" element={<InvoiceForm />} />
         <Route path="/invoices" element={<InvoiceList />} />
         <Route path="/invoice/:id" element={<InvoiceView />} />
+        <Route path="/reports/:id" element={<InspectionReports />} />
       </Routes>
     </div>
   );

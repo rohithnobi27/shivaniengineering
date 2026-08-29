@@ -62,6 +62,7 @@ export default function InvoiceView() {
         <button type="button" className="btn btn-primary" onClick={printInvoice}>Print / PDF</button>
         <button type="button" className="btn btn-outline" onClick={handleDownload}>Download</button>
         <button type="button" className="btn btn-primary" onClick={handleShare}>Share</button>
+        <Link to={`/reports/${id}`} className="btn btn-success">Inspection Reports</Link>
       </div>
 
       <div className="invoice-paper">

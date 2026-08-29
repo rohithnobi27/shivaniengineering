@@ -1,0 +1,180 @@
+/* =========================================================================
+   Final Inspection Report styles (ADDITIVE — imported only by report views,
+   so nothing here can affect the existing Tax Invoice screens/print.)
+   ========================================================================= */
+
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+  padding: 1.25rem 1.25rem 0;
+}
+
+.report-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  max-width: 1200px;
+  margin: 0 auto 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.report-controls label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #475569;
+  margin-bottom: 0.3rem;
+}
+
+.report-controls input {
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.report-stack {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ---- one printable sheet ---- */
+.report-sheet {
+  background: #fff;
+  color: #000;
+  border: 1px solid #94a3b8;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.report-head {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.report-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.report-head p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+.report-meta-table,
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.report-meta-table {
+  margin-bottom: 4px;
+}
+
+.report-meta-table td,
+.report-table th,
+.report-table td {
+  border: 1px solid #000;
+  padding: 3px 4px;
+  font-size: 10px;
+  word-break: break-word;
+  vertical-align: middle;
+}
+
+.report-table th {
+  font-weight: 700;
+  text-align: center;
+  background: #f1f5f9;
+}
+
+.report-table .center {
+  text-align: center;
+}
+
+.report-table .section-label {
+  font-weight: 700;
+}
+
+.report-table tbody tr td {
+  height: 18px;
+}
+
+.report-table .c-sl { width: 4%; }
+.report-table .c-param { width: 14%; }
+.report-table .c-uom { width: 4%; }
+.report-table .c-spl { width: 7%; }
+.report-table .c-std { width: 13%; }
+.report-table .c-method { width: 9%; }
+.report-table .c-remarks { width: 9%; }
+
+.report-signs {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 10px;
+}
+
+/* ---- print: A4 landscape, one report per page ---- */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .report-toolbar,
+  .report-controls,
+  .no-print {
+    display: none !important;
+  }
+
+  .report-stack {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+  }
+
+  .report-sheet {
+    border: none;
+    padding: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .report-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .report-table th,
+  .report-table td {
+    font-size: 9px;
+    padding: 2px 3px;
+  }
+}

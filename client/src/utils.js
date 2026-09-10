@@ -297,7 +297,8 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
 <style>
   @page { size: A4; margin: 12mm; }
   * { box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 0; padding: 16px; }
+  @media print { body { padding: 0; } }
   h1 { font-size: 18px; margin: 0; text-align: center; letter-spacing: .5px; }
   h2 { font-size: 13px; margin: 4px 0 0; text-align: center; font-weight: 600; color: #1e40af; }
   .meta { display: flex; justify-content: space-between; font-size: 11px; margin: 10px 0 8px; }

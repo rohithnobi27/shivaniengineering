@@ -785,6 +785,16 @@ body {
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body {
+    background: white;
+    line-height: 1.25;
+  }
+
   .navbar,
   .panel,
   .actions,
@@ -796,6 +806,65 @@ body {
   .main-layout {
     display: block;
     padding: 0;
+  }
+
+  .invoice-view-shell {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .invoice-view-shell .invoice-paper {
+    border: 1px solid #000;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 6mm;
+    font-size: 0.78rem;
+  }
+
+  .invoice-view-shell .invoice-header {
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .invoice-view-shell .invoice-title {
+    margin-top: 0.35rem;
+  }
+
+  .invoice-view-shell .party-grid {
+    margin-bottom: 0.55rem;
+  }
+
+  .invoice-view-shell .items-table {
+    margin: 0.55rem 0;
+    font-size: 0.72rem;
+  }
+
+  .invoice-view-shell .items-table th,
+  .invoice-view-shell .items-table td {
+    padding: 0.25rem 0.35rem;
+  }
+
+  .invoice-view-shell .totals-section,
+  .invoice-view-shell .bank-details {
+    margin-top: 0.55rem;
+  }
+
+  .invoice-view-shell .amount-words {
+    margin-top: 0.45rem;
+    padding: 0.45rem;
+  }
+
+  .invoice-view-shell .signature-section {
+    margin-top: 0.55rem;
+  }
+
+  .invoice-view-shell .items-table tr,
+  .invoice-view-shell .totals-section,
+  .invoice-view-shell .amount-words,
+  .invoice-view-shell .bank-details,
+  .invoice-view-shell .signature-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .invoice-paper {

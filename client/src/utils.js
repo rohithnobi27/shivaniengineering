@@ -168,6 +168,72 @@ export function downloadCsv(filename, rows) {
   URL.revokeObjectURL(url);
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export function printTaxReport({ rows, summary, filters }) {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) throw new Error('Please allow pop-ups to print the tax report.');
+
+  const filterText = [
+    filters.item && `Item: ${filters.item}`,
+    filters.from && `From: ${filters.from}`,
+    filters.to && `To: ${filters.to}`,
+  ].filter(Boolean).join(' | ') || 'All saved invoices';
+
+  const body = rows.map((row, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(row.sourceRefs.join(', '))}</td>
+      <td>${escapeHtml(row.particulars)}</td>
+      <td>${escapeHtml(row.hsnCode || '-')}</td>
+      <td class="number">${row.quantity}</td>
+      <td class="number">₹ ${formatCurrency(row.unitRate)}</td>
+      <td class="number">₹ ${formatCurrency(row.taxableAmount)}</td>
+      <td class="number">${formatCurrency(row.gstPercent)}%</td>
+      <td class="number">₹ ${formatCurrency(row.gstAmount)}</td>
+      <td class="number">₹ ${formatCurrency(row.totalAmount)}</td>
+    </tr>`).join('');
+
+  printWindow.document.write(`<!doctype html>
+    <html><head><title>Tax Item Report</title><meta charset="utf-8">
+    <style>
+      @page { size: A4 landscape; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; color: #172033; margin: 0; font-size: 11px; }
+      h1 { margin: 0 0 4px; font-size: 20px; color: #123b68; }
+      h2 { margin: 0; font-size: 15px; color: #123b68; }
+      .header { border-bottom: 2px solid #123b68; padding-bottom: 9px; margin-bottom: 12px; }
+      .meta { color: #526174; margin-top: 5px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      th { background: #123b68; color: white; font-weight: 700; }
+      th, td { border: 1px solid #aeb9c7; padding: 6px 7px; text-align: left; }
+      .number { text-align: right; white-space: nowrap; }
+      tbody tr:nth-child(even) { background: #f3f6f9; }
+      tfoot td { font-weight: 700; background: #e8eef5; }
+      .summary { display: flex; gap: 24px; margin-top: 14px; border-top: 1px solid #aeb9c7; padding-top: 10px; }
+      .summary strong { display: block; font-size: 13px; margin-top: 2px; }
+      .print-note { margin-top: 22px; color: #687588; font-size: 10px; }
+    </style></head><body>
+      <div class="header"><h1>SHIVANI ENGINEERING</h1><h2>Tax / Item Report</h2><div class="meta">${escapeHtml(filterText)} | Generated: ${escapeHtml(new Date().toLocaleDateString('en-IN'))}</div></div>
+      <table><thead><tr>
+        <th>#</th><th>DC No. / Date</th><th>Particulars</th><th>HSN</th><th class="number">Total Pieces</th><th class="number">Rate</th><th class="number">Taxable Amount</th><th class="number">GST %</th><th class="number">GST Amount</th><th class="number">Total Amount</th>
+      </tr></thead><tbody>${body}</tbody>
+      <tfoot><tr><td colspan="4">Report Total</td><td class="number">${summary.totalPieces}</td><td></td><td class="number">₹ ${formatCurrency(summary.totalCost)}</td><td></td><td class="number">₹ ${formatCurrency(summary.totalGst)}</td><td class="number">₹ ${formatCurrency(summary.grandTotal)}</td></tr></tfoot></table>
+      <div class="summary"><div>Total DCs<strong>${summary.dcCount}</strong></div><div>Total Pieces<strong>${summary.totalPieces}</strong></div><div>Total GST<strong>₹ ${formatCurrency(summary.totalGst)}</strong></div><div>Grand Total<strong>₹ ${formatCurrency(summary.grandTotal)}</strong></div></div>
+      <div class="print-note">This report groups identical particulars, HSN, rate, and GST percentage across the selected invoices.</div>
+    </body></html>`);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.addEventListener('load', () => printWindow.print());
+}
+
 export async function shareInvoice(invoice) {
   const text = invoiceToText(invoice);
   const title = `Invoice ${invoice.invoiceNo}`;
@@ -238,7 +304,11 @@ export function buildItemWiseRows(invoices = []) {
       const row = map.get(key);
       row.pieces += qty;
       row.amount += amount;
-      if (inv.dcNo || inv.invoiceNo) row.dcs.add(inv.dcNo || inv.invoiceNo);
+      if (inv.dcNo || inv.invoiceNo) {
+        const dcValue = String(inv.dcNo || inv.invoiceNo);
+        const dcNo = dcValue.replace(/^[^/]+\//, '');
+        row.dcs.add(`${dcNo} (${formatDate(inv.invoiceDate)})`);
+      }
     });
   });
 
@@ -286,7 +356,7 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
       <td class="c">${r.gstPercent}%</td>
       <td class="r">${formatCurrency(r.gstAmount)}</td>
       <td class="r">${formatCurrency(r.total)}</td>
-      <td class="c">${r.dcCount}</td>
+      <td class="c">${esc(r.dcList)}</td>
     </tr>`
     )
     .join('');
@@ -328,7 +398,7 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
     <thead><tr>
       <th class="c">Sl</th><th>Particulars</th><th class="c">HSN</th><th class="r">Pieces</th>
       <th class="r">Rate</th><th class="r">Amount</th><th class="c">GST %</th>
-      <th class="r">GST Amt</th><th class="r">Total</th><th class="c">DCs</th>
+      <th class="r">GST Amt</th><th class="r">Total</th><th class="c">DC No. / Date</th>
     </tr></thead>
     <tbody>${body || '<tr><td colspan="10" class="c">No items found</td></tr>'}</tbody>
     <tfoot><tr>

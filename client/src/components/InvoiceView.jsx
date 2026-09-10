@@ -56,7 +56,7 @@ export default function InvoiceView() {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem' }}>
+    <div className="invoice-view-shell" style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem' }}>
       <div className="actions no-print" style={{ marginBottom: '1rem', flexWrap: 'wrap' }}>
         <Link to="/invoices" className="btn btn-outline">← Back to List</Link>
         <button type="button" className="btn btn-primary" onClick={printInvoice}>Print / PDF</button>

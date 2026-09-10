@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Component = require('./models/Component');
+const defaultComponents = require('./defaultComponents');
 
 const DEFAULT_HSN = '8684900';
 const ARCH_HSN = '998517';
@@ -69,6 +70,7 @@ const components = [
     unitRate: 8.25,
     notes: 'With Material 87141090',
   },
+  ...defaultComponents,
 ];
 
 async function seed() {

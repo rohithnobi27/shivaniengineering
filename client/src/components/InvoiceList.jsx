@@ -6,7 +6,8 @@ import {
   formatDate,
   invoiceToText,
   downloadTextFile,
-  downloadCsv,
+  buildItemReportHtml,
+  printHtml,
   shareInvoice,
 } from '../utils';
 
@@ -88,28 +89,8 @@ export default function InvoiceList() {
   };
 
   const handleDownloadReport = () => {
-    const rows = [
-      ['Invoice No', 'DC No', 'Date', 'Customer', 'Items', 'Subtotal', 'GST', 'Grand Total'],
-      ...invoices.map((inv) => [
-        inv.invoiceNo,
-        inv.dcNo || '',
-        formatDate(inv.invoiceDate),
-        inv.customerName,
-        (inv.items || []).map((i) => i.particulars).join(' | '),
-        formatCurrency(inv.subtotal),
-        formatCurrency(inv.igstAmount),
-        formatCurrency(inv.grandTotal),
-      ]),
-      [],
-      ['SUMMARY'],
-      ['Total DCs', summary.dcCount],
-      ['Total Pieces', summary.totalPieces],
-      ['Total Cost', formatCurrency(summary.totalCost)],
-      ['Total GST', formatCurrency(summary.totalGst)],
-      ['Grand Total', formatCurrency(summary.grandTotal)],
-    ];
-    const label = applied.item ? applied.item.replace(/\s+/g, '_') : 'all';
-    downloadCsv(`Tax_Report_${label}.csv`, rows);
+    const html = buildItemReportHtml(invoices, applied);
+    printHtml(html, 'Item-wise Tax Report');
   };
 
   const hasFilter = applied.item || applied.from || applied.to;
@@ -177,7 +158,7 @@ export default function InvoiceList() {
         {invoices.length > 0 && (
           <div style={{ marginTop: '0.75rem' }}>
             <button type="button" className="btn btn-outline" onClick={handleDownloadReport}>
-              Download Tax Report (CSV)
+              Print Item-wise Tax Report
             </button>
           </div>
         )}

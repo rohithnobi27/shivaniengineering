@@ -52,24 +52,6 @@ const components = [
     unitRate: 4.95,
     notes: 'For Labour charges only',
   },
-  {
-    itemNo: '7',
-    name: 'BAR 32x48 - Variant A',
-    category: 'BAR 32x48',
-    particulars: 'BAR 32x48 ITEM NO: 7 With Material 87141090',
-    hsnCode: DEFAULT_HSN,
-    unitRate: 28.5,
-    notes: 'With Material 87141090',
-  },
-  {
-    itemNo: '5',
-    name: 'BAR 18x30 - Heavy Duty',
-    category: 'BAR 18x30',
-    particulars: 'BAR 18x30 ITEM NO: 5 Heavy Duty With Material 87141090',
-    hsnCode: DEFAULT_HSN,
-    unitRate: 8.25,
-    notes: 'With Material 87141090',
-  },
   ...defaultComponents,
 ];
 

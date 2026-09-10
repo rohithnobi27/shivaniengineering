@@ -15,6 +15,16 @@ const COMPANY = {
   ifsc: 'UBIN0562092',
 };
 
+const PO_STORAGE_KEY = 'shivani-engineering-po-details';
+
+function getSavedPoDetails() {
+  try {
+    return JSON.parse(localStorage.getItem(PO_STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
 const emptyItem = () => ({
   id: crypto.randomUUID(),
   componentId: null,
@@ -30,19 +40,22 @@ export default function InvoiceForm() {
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
-    invoiceNo: '',
-    invoiceDate: new Date().toISOString().split('T')[0],
-    customerName: 'CADM TOOLS & COMPONENTS PVT LTD UNIT II',
-    customerAddress: 'III/A1 Industrial Area Bommasandra Bengaluru',
-    customerGstin: '29AAHCC7543C1ZN',
-    poNo: '',
-    poDate: '',
-    dcNo: '',
-    dcDate: '',
-    vendorCode: '',
-    vehicleNo: '',
-    igstPercent: 18,
+  const [form, setForm] = useState(() => {
+    const savedPo = getSavedPoDetails();
+    return {
+      invoiceNo: '',
+      invoiceDate: new Date().toISOString().split('T')[0],
+      customerName: 'CADM TOOLS & COMPONENTS PVT LTD UNIT II',
+      customerAddress: 'III/A1 Industrial Area Bommasandra Bengaluru',
+      customerGstin: '29AAHCC7543C1ZN',
+      poNo: savedPo.poNo || '',
+      poDate: savedPo.poDate || '',
+      dcNo: '',
+      dcDate: '',
+      vendorCode: '',
+      vehicleNo: '',
+      igstPercent: 18,
+    };
   });
 
   const [items, setItems] = useState([]);
@@ -54,6 +67,12 @@ export default function InvoiceForm() {
       })
       .catch(console.error);
   }, []);
+
+  const updatePoDetails = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    const savedPo = getSavedPoDetails();
+    localStorage.setItem(PO_STORAGE_KEY, JSON.stringify({ ...savedPo, [field]: value }));
+  };
 
   useEffect(() => {
     loadNextInvoiceNo(form.invoiceDate);
@@ -216,11 +235,11 @@ export default function InvoiceForm() {
               </div>
               <div className="form-group">
                 <label>P.O. No</label>
-                <input value={form.poNo} onChange={(e) => setForm({ ...form, poNo: e.target.value })} />
+                <input value={form.poNo} onChange={(e) => updatePoDetails('poNo', e.target.value)} />
               </div>
               <div className="form-group">
                 <label>P.O. Date</label>
-                <input type="date" value={form.poDate} onChange={(e) => setForm({ ...form, poDate: e.target.value })} />
+                <input type="date" value={form.poDate} onChange={(e) => updatePoDetails('poDate', e.target.value)} />
               </div>
               <div className="form-group">
                 <label>Your D.C. No</label>

@@ -64,6 +64,26 @@ export async function deleteInvoice(id) {
   return res.json();
 }
 
+export async function updateInvoice(id, data) {
+  const res = await fetch(`${API}/invoices/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update invoice');
+  return res.json();
+}
+
+export async function markInvoicesReceivedBetween(from, to, receivedDate) {
+  const res = await fetch(`${API}/invoices/payment-received-between`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from, to, receivedDate }),
+  });
+  if (!res.ok) throw new Error('Failed to update payment records');
+  return res.json();
+}
+
 export async function addComponent(data) {
   const res = await fetch(`${API}/components`, {
     method: 'POST',

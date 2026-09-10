@@ -3,6 +3,7 @@ import InvoiceForm from './components/InvoiceForm';
 import InvoiceList from './components/InvoiceList';
 import InvoiceView from './components/InvoiceView';
 import InspectionReports from './components/InspectionReports';
+import PaymentTracking from './components/PaymentTracking';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <nav>
           <NavLink to="/" end>New DC</NavLink>
           <NavLink to="/invoices">Saved Invoices</NavLink>
+          <NavLink to="/payments">Payment Tracking</NavLink>
         </nav>
       </header>
 
@@ -20,6 +22,7 @@ export default function App() {
         <Route path="/invoices" element={<InvoiceList />} />
         <Route path="/invoice/:id" element={<InvoiceView />} />
         <Route path="/reports/:id" element={<InspectionReports />} />
+        <Route path="/payments" element={<PaymentTracking />} />
       </Routes>
     </div>
   );

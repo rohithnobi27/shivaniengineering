@@ -224,6 +224,28 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+router.patch('/payment-received-between', async (req, res) => {
+  try {
+    const { from, to, receivedDate } = req.body;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(from || '')) || !/^\d{4}-\d{2}-\d{2}$/.test(String(to || ''))) {
+      return res.status(400).json({ error: 'Valid from and to dates are required' });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(receivedDate || ''))) {
+      return res.status(400).json({ error: 'A payment received date is required' });
+    }
+    const startOfDay = new Date(`${from}T00:00:00.000`);
+    const endOfDay = new Date(`${to}T23:59:59.999`);
+    if (startOfDay > endOfDay) return res.status(400).json({ error: 'From date must be before To date' });
+    const result = await Invoice.updateMany(
+      { invoiceDate: { $gte: startOfDay, $lte: endOfDay } },
+      { $set: { paymentReceived: true, paymentReceivedDate: new Date(`${receivedDate}T00:00:00.000`) } }
+    );
+    res.json({ updated: result.modifiedCount ?? result.nModified ?? 0 });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.delete('/:id', async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.id);

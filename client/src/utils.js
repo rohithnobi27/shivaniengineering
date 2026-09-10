@@ -274,19 +274,24 @@ export function formatDate(dateStr) {
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'numeric', year: '2-digit' });
 }
 
+function invoiceNumberOnly(value) {
+  return String(value || '').replace(/^[^/]+\/\s*/, '');
+}
+
 /**
- * Group invoice lines item-wise so each row shows one item with its total
- * pieces, rate, amount and GST across all matching DC/Invoices.
+ * Group invoice lines by item, rate, GST, and invoice date so each date has
+ * its own quantity and amount row in the printable report.
  */
 export function buildItemWiseRows(invoices = []) {
   const map = new Map();
 
   invoices.forEach((inv) => {
     const pct = inv.igstPercent != null ? inv.igstPercent : 18;
+    const invoiceDate = inv.invoiceDate ? new Date(inv.invoiceDate).toISOString().slice(0, 10) : '';
     (inv.items || []).forEach((item) => {
       const name = (item.particulars || '').trim() || 'Unnamed item';
       const rate = Number(item.unitRate || 0);
-      const key = `${name.toLowerCase()}|${item.hsnCode || ''}|${rate}|${pct}`;
+      const key = `${name.toLowerCase()}|${item.hsnCode || ''}|${rate}|${pct}|${invoiceDate}`;
       const qty = Number(item.quantity || 0);
       const amount = Number(item.amount != null ? item.amount : qty * rate);
 
@@ -298,17 +303,14 @@ export function buildItemWiseRows(invoices = []) {
           gstPercent: pct,
           pieces: 0,
           amount: 0,
-          dcs: new Set(),
+          invoiceNumbers: new Set(),
+          invoiceDate,
         });
       }
       const row = map.get(key);
       row.pieces += qty;
       row.amount += amount;
-      if (inv.dcNo || inv.invoiceNo) {
-        const dcValue = String(inv.dcNo || inv.invoiceNo);
-        const dcNo = dcValue.replace(/^[^/]+\//, '');
-        row.dcs.add(`${dcNo} (${formatDate(inv.invoiceDate)})`);
-      }
+      if (inv.invoiceNo || inv.dcNo) row.invoiceNumbers.add(invoiceNumberOnly(inv.invoiceNo || inv.dcNo));
     });
   });
 
@@ -318,14 +320,13 @@ export function buildItemWiseRows(invoices = []) {
       const gstAmount = Math.round(amount * (row.gstPercent / 100) * 100) / 100;
       return {
         ...row,
-        dcCount: row.dcs.size,
-        dcList: Array.from(row.dcs).join(', '),
+        invoiceList: Array.from(row.invoiceNumbers).join(', '),
         amount,
         gstAmount,
         total: Math.round((amount + gstAmount) * 100) / 100,
       };
     })
-    .sort((a, b) => a.particulars.localeCompare(b.particulars));
+    .sort((a, b) => a.invoiceDate.localeCompare(b.invoiceDate) || a.particulars.localeCompare(b.particulars));
 }
 
 /** Build a clean A4 printable HTML tax report (item-wise) */
@@ -345,8 +346,18 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
       : 'All dates';
 
   const body = rows
-    .map(
-      (r, i) => `<tr>
+    .reduce((html, r, i) => {
+      const previousRow = rows[i - 1];
+      const startsDateGroup = !previousRow || previousRow.invoiceDate !== r.invoiceDate;
+      const dateInvoices = rows
+        .filter((candidate) => candidate.invoiceDate === r.invoiceDate)
+        .flatMap((candidate) => candidate.invoiceList.split(', '))
+        .filter((value, index, values) => values.indexOf(value) === index)
+        .join(', ');
+      const groupHeader = startsDateGroup
+        ? `<tr class="date-group"><td colspan="10"><strong>Date: ${esc(formatDate(r.invoiceDate))}</strong><span>Invoices: ${esc(dateInvoices)}</span></td></tr>`
+        : '';
+      return `${html}${groupHeader}<tr>
       <td class="c">${i + 1}</td>
       <td>${esc(r.particulars)}</td>
       <td class="c">${esc(r.hsnCode)}</td>
@@ -356,10 +367,9 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
       <td class="c">${r.gstPercent}%</td>
       <td class="r">${formatCurrency(r.gstAmount)}</td>
       <td class="r">${formatCurrency(r.total)}</td>
-      <td class="c">${esc(r.dcList)}</td>
-    </tr>`
-    )
-    .join('');
+      <td class="c">${esc(r.invoiceList)}</td>
+    </tr>`;
+    }, '');
 
   return `<!doctype html>
 <html><head><meta charset="utf-8" />
@@ -375,6 +385,8 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
   th, td { border: 1px solid #555; padding: 5px 6px; }
   th { background: #eef2ff; text-align: left; }
+  .date-group td { background: #dbe7f7; color: #123b68; padding: 7px 6px; }
+  .date-group span { float: right; font-weight: 600; }
   td.c, th.c { text-align: center; }
   td.r, th.r { text-align: right; }
   tfoot td { font-weight: bold; background: #f5f5f5; }
@@ -398,7 +410,7 @@ export function buildItemReportHtml(invoices = [], filters = {}) {
     <thead><tr>
       <th class="c">Sl</th><th>Particulars</th><th class="c">HSN</th><th class="r">Pieces</th>
       <th class="r">Rate</th><th class="r">Amount</th><th class="c">GST %</th>
-      <th class="r">GST Amt</th><th class="r">Total</th><th class="c">DC No. / Date</th>
+      <th class="r">GST Amt</th><th class="r">Total</th><th class="c">Invoice No. / Date</th>
     </tr></thead>
     <tbody>${body || '<tr><td colspan="10" class="c">No items found</td></tr>'}</tbody>
     <tfoot><tr>

@@ -34,6 +34,8 @@ const invoiceSchema = new mongoose.Schema(
     roundOff: { type: Number, default: 0 },
     grandTotal: { type: Number, default: 0 },
     amountInWords: { type: String, default: '' },
+    paymentReceived: { type: Boolean, default: false },
+    paymentReceivedDate: { type: Date },
   },
   { timestamps: true }
 );

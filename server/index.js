@@ -23,15 +23,17 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('MongoDB connected');
-    return Promise.all(
-      defaultComponents.map((component) =>
-        require('./models/Component').updateOne(
+    const Component = require('./models/Component');
+    return Promise.all([
+      Component.deleteMany({ itemNo: { $in: ['5', '7'] } }),
+      ...defaultComponents.map((component) =>
+        Component.updateOne(
           { itemNo: component.itemNo },
           { $setOnInsert: component },
           { upsert: true }
         )
-      )
-    );
+      ),
+    ]);
   })
   .then(() => {
     console.log('Default invoice components available');
